@@ -8,7 +8,7 @@ class Signup implements \MVC\Model\Form {
     public $successful = false;
     public $submitted = false;
 
-    public function __construct(\User\Model\User $model, Office365User\Model\Office365Auth $auth) {
+    public function __construct(\Solleer\User\User $model, \Office365User\Model\Office365Auth $auth) {
         $this->model = $model;
         $this->auth = $auth;
     }
@@ -20,6 +20,7 @@ class Signup implements \MVC\Model\Form {
 
     public function submit($data) {
         $this->submitted = true;
+        if ($this->model->getUser($data['id']) !== false) return false;
         if (!$this->auth->validateEmail($data['user_id'])) return false;
         return $this->model->save($data);
     }

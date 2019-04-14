@@ -8,7 +8,11 @@ class Status {
         return true;
     }
 
-    public function getSigninVars() {
+    public function getOffice365Vars() {
         return $_SESSION['office365'];
+    }
+
+    public function getAccessToken() {
+        return $this->getOffice365Vars()['access_token'] ?? null;
     }
 }

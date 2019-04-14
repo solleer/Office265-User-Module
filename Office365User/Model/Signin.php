@@ -1,13 +1,13 @@
 <?php
-namespace User\Model;
+namespace Office365User\Model;
 class Signin {
     private $model;
     private $users;
     private $userStatus;
     private $office365Status;
 
-    public function __construct(Office365Auth $model, \Maphper\Maphper $users,
-                                \User\Model\Status $userStatus, \Office365User\Model\Status $office365Status) {
+    public function __construct(Office365Auth $model, \Solleer\User\User $users,
+                                \Solleer\User\SigninStatus $userStatus, \Office365User\Model\Status $office365Status) {
         $this->model = $model;
         $this->users = $users;
         $this->userStatus = $userStatus;
@@ -16,15 +16,16 @@ class Signin {
 
     public function signin($code) {
         $accessToken = $this->model->getAccessToken($code);
-        $email = $this->model->getUserEmail($accessToken->getToken());
-        if (explode('@', $email)[1] !== 'bolles.org') return false;
-        if (!empty($this->users[$email])) {
-            $status = [];
-            $status['access_token'] = $accessToken->getToken();
-            $status['refresh_token'] = $accessToken->getRefreshToken();
-            $status['token_expires'] = $accessToken->getExpires();
-            $this->office365Status->setOffice365Vars($status);
-            $this->userStatus->setSigninVar($email);
+        if ($accessToken === false) return false;
+        $email = strtolower($this->model->getUserEmail($accessToken->getToken()));
+        if ($this->users->getUser($email)) {
+            $this->office365Status->setOffice365Vars([
+                'access_token' => $accessToken->getToken(),
+                'refresh_token' => $accessToken->getRefreshToken(),
+                'token_expires' => $accessToken->getExpires()
+            ]);
+            $this->userStatus->setSigninID($email);
+            return true;
         }
         else return false;
     }
@@ -34,8 +35,8 @@ class Signin {
     }
 
     public function signout() {
-        $this->office365Status->setOffice365Vars(null);
-        $this->userStatus->setSigninVar(null);
+        $this->office365Status->setOffice365Vars([]);
+        $this->userStatus->setSigninID(null);
         return true;
     }
 }
